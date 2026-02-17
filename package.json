@@ -1,0 +1,31 @@
+{
+  "name": "app-gestion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ecosistema de gestión para empresas de reformas, fontanería y electricidad",
+  "workspaces": [
+    "backend",
+    "web",
+    "mobile"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w backend",
+    "dev:web": "npm run dev -w web",
+    "dev:mobile": "npm run dev -w mobile",
+    "db:migrate": "npm run db:migrate -w backend",
+    "db:seed": "npm run db:seed -w backend"
+  },
+  "keywords": [
+    "reformas",
+    "fontanería",
+    "electricidad",
+    "presupuestos",
+    "partes de trabajo"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.21",
+    "react-router-dom": "^7.13.0"
+  }
+}

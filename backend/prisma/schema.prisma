@@ -1,0 +1,255 @@
+// App Gestión - Schema de base de datos
+// Empresas de reformas, fontanería, electricidad
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- USUARIOS ---
+model Usuario {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  nombre    String
+  rol       Rol      @default(OPERARIO)
+  telefono  String?
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  empresaId String? @map("empresa_id")
+  empresa   Empresa? @relation(fields: [empresaId], references: [id])
+
+  partesAsignados ParteTrabajo[] @relation("AsignadoA")
+  fichajes        Fichaje[]
+  gastosMaterial  GastoMaterial[]
+}
+
+enum Rol {
+  ADMIN      // Jefe
+  OPERARIO   // Trabajador
+}
+
+// --- EMPRESA ---
+model Empresa {
+  id          String   @id @default(cuid())
+  nombre      String
+  cif         String?
+  direccion   String?
+  telefono    String?
+  email       String?
+  logoUrl     String?  @map("logo_url")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  usuarios    Usuario[]
+  obras       Obra[]
+  partidas    Partida[]
+  materiales  Material[]
+}
+
+// --- OBRAS / PROYECTOS ---
+model Obra {
+  id          String      @id @default(cuid())
+  nombre      String
+  direccion   String
+  latitud     Float?
+  longitud    Float?
+  cliente     String
+  telefonoCliente String? @map("telefono_cliente")
+  emailCliente    String? @map("email_cliente")
+  estado      EstadoObra @default(EN_CURSO)
+  descripcion String?    @db.Text
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  empresaId   String   @map("empresa_id")
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
+
+  presupuestos   Presupuesto[]
+  partesTrabajo  ParteTrabajo[]
+  fichajes       Fichaje[]
+  facturas       Factura[]
+}
+
+enum EstadoObra {
+  PENDIENTE
+  EN_CURSO
+  COMPLETADA
+  FACTURADA
+}
+
+// --- PARTIDAS (para presupuestos) ---
+model Partida {
+  id          String   @id @default(cuid())
+  codigo      String?
+  nombre      String
+  descripcion String?  @db.Text
+  precioUnit  Float    @map("precio_unit")
+  unidad      String   @default("ud")
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  empresaId   String  @map("empresa_id")
+  empresa     Empresa @relation(fields: [empresaId], references: [id])
+
+  lineasPresupuesto LineaPresupuesto[]
+}
+
+// --- PRESUPUESTOS ---
+model Presupuesto {
+  id          String   @id @default(cuid())
+  numero      String   @unique
+  titulo      String?
+  margen      Float    @default(0) // % beneficio
+  iva         Float    @default(21)
+  total       Float?
+  estado      EstadoPresupuesto @default(BORRADOR)
+  fechaFirma   DateTime? @map("fecha_firma")
+  firmaBase64 String?  @map("firma_base64") @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  obraId      String
+  obra        Obra     @relation(fields: [obraId], references: [id])
+
+  lineas       LineaPresupuesto[]
+  factura      Factura?
+}
+
+enum EstadoPresupuesto {
+  BORRADOR
+  ENVIADO
+  FIRMADO
+  RECHAZADO
+}
+
+model LineaPresupuesto {
+  id            String   @id @default(cuid())
+  cantidad      Float
+  precioUnit    Float    @map("precio_unit")
+  descripcion   String?  @db.Text
+  orden         Int      @default(0)
+
+  presupuestoId String   @map("presupuesto_id")
+  presupuesto   Presupuesto @relation(fields: [presupuestoId], references: [id], onDelete: Cascade)
+
+  partidaId     String?  @map("partida_id")
+  partida       Partida? @relation(fields: [partidaId], references: [id])
+}
+
+// --- PARTES DE TRABAJO ---
+model ParteTrabajo {
+  id          String   @id @default(cuid())
+  titulo      String
+  descripcion String?  @db.Text
+  direccion   String
+  latitud     Float?
+  longitud    Float?
+  estado      EstadoParte @default(PENDIENTE)
+  horasInvertidas Float? @map("horas_invertidas")
+  notas       String?  @db.Text
+  fotoAntes   String?  @map("foto_antes")
+  fotoDespues String?  @map("foto_despues")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  completadoAt DateTime? @map("completado_at")
+
+  obraId      String
+  obra        Obra     @relation(fields: [obraId], references: [id])
+
+  asignadoId  String?  @map("asignado_id")
+  asignado    Usuario? @relation("AsignadoA", fields: [asignadoId], references: [id])
+
+  gastosMaterial GastoMaterial[]
+}
+
+enum EstadoParte {
+  PENDIENTE
+  EN_CURSO
+  COMPLETADO
+}
+
+model GastoMaterial {
+  id          String   @id @default(cuid())
+  nombre      String
+  cantidad    Float
+  unidad      String   @default("ud")
+  precioUnit  Float?   @map("precio_unit")
+  notas       String?
+
+  parteId     String   @map("parte_id")
+  parte       ParteTrabajo @relation(fields: [parteId], references: [id], onDelete: Cascade)
+
+  operarioId  String   @map("operario_id")
+  operario    Usuario  @relation(fields: [operarioId], references: [id])
+}
+
+// --- FICHAJE ---
+model Fichaje {
+  id          String   @id @default(cuid())
+  tipo        TipoFichaje
+  timestamp   DateTime @default(now())
+  latitud     Float?
+  longitud    Float?
+
+  usuarioId   String   @map("usuario_id")
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+
+  obraId      String?  @map("obra_id")
+  obra        Obra?    @relation(fields: [obraId], references: [id])
+}
+
+enum TipoFichaje {
+  INICIO_JORNADA
+  FIN_JORNADA
+  INICIO_OBRA
+  FIN_OBRA
+  PAUSA
+  REANUDAR
+}
+
+// --- MATERIALES / STOCK ---
+model Material {
+  id          String   @id @default(cuid())
+  nombre      String
+  codigo      String?
+  unidad      String   @default("ud")
+  stockMinimo Float?   @map("stock_minimo")
+  stockActual Float?   @map("stock_actual")
+  precioRef   Float?   @map("precio_ref")
+
+  empresaId   String   @map("empresa_id")
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
+}
+
+// --- FACTURACIÓN ---
+model Factura {
+  id          String      @id @default(cuid())
+  numero      String      @unique
+  estado      EstadoFactura @default(PENDIENTE)
+  total       Float
+  fechaEmision DateTime  @default(now()) @map("fecha_emision")
+  fechaVencimiento DateTime? @map("fecha_vencimiento")
+  fechaPago   DateTime?   @map("fecha_pago")
+  createdAt   DateTime    @default(now())
+
+  obraId      String
+  obra        Obra        @relation(fields: [obraId], references: [id])
+
+  presupuestoId String?   @unique @map("presupuesto_id")
+  presupuesto   Presupuesto? @relation(fields: [presupuestoId], references: [id])
+}
+
+enum EstadoFactura {
+  PENDIENTE
+  ENVIADA
+  PAGADA
+  PARCIAL
+}
