@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:subfolder": "VITE_BASE_PATH=/app-gestion/ vite build",
     "preview": "vite preview"
   },
   "dependencies": {

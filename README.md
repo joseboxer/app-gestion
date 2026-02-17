@@ -115,6 +115,47 @@ npm run dev:mobile
 
 Para probar en dispositivo físico: cambiar `API_URL` en `mobile/App.js` por la IP de tu ordenador (ej: `http://192.168.1.100:4000/api`).
 
+## Despliegue en subcarpeta (versión de prueba)
+
+Para alojar el panel web en una subcarpeta de tu dominio (ej: `midominio.com/app-gestion/`):
+
+```bash
+# Build con base path (subcarpeta /app-gestion/)
+cd web
+npm run build:subfolder
+
+# O con otra ruta: VITE_BASE_PATH=/prueba/ npm run build
+```
+
+Los archivos se generan en `web/dist/`. Configura tu servidor (nginx, Apache, etc.):
+
+**Nginx:**
+```nginx
+location /app-gestion/ {
+    alias /ruta/a/web/dist/;
+    try_files $uri $uri/ /app-gestion/index.html;
+}
+
+location /app-gestion/api/ {
+    proxy_pass http://localhost:4000/api/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+**Apache (.htaccess en la subcarpeta):**
+```apache
+RewriteEngine On
+RewriteBase /app-gestion/
+RewriteRule ^index\.html$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /app-gestion/index.html [L]
+```
+
+La API debe estar corriendo (Node.js) y accesible. Puedes usar PM2, systemd o un reverse proxy.
+
 ## Próximos pasos
 
 - [ ] Generador de presupuestos con partidas y PDF

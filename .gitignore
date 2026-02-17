@@ -14,6 +14,7 @@ build/
 
 # Database
 *.db
+*.db-journal
 *.sqlite
 
 # Logs
