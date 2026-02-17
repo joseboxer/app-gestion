@@ -1,0 +1,14 @@
+# Evitar 403 Forbidden en subcarpeta
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /app-gestion/
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /app-gestion/index.html [L]
+</IfModule>
+
+# Permitir acceso
+<IfModule mod_authz_core.c>
+  Require all granted
+</IfModule>

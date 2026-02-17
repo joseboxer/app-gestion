@@ -129,30 +129,15 @@ npm run build:subfolder
 
 Los archivos se generan en `web/dist/`. Configura tu servidor (nginx, Apache, etc.):
 
-**Nginx:**
-```nginx
-location /app-gestion/ {
-    alias /ruta/a/web/dist/;
-    try_files $uri $uri/ /app-gestion/index.html;
-}
+**Nginx (VPS):** Ver `nginx-app-gestion.conf` en el repo. Pasos:
 
-location /app-gestion/api/ {
-    proxy_pass http://localhost:4000/api/;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-}
-```
+1. Subir el contenido de `web/dist/` a `/var/www/gofix/app-gestion/`
+2. Permisos: `sudo chown -R www-data:www-data /var/www/gofix && sudo chmod -R 755 /var/www/gofix`
+3. Incluir la config en tu `server {}` y recargar: `sudo nginx -t && sudo systemctl reload nginx`
 
-**Apache (.htaccess en la subcarpeta):**
-```apache
-RewriteEngine On
-RewriteBase /app-gestion/
-RewriteRule ^index\.html$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /app-gestion/index.html [L]
-```
+**Apache:** Copiar el contenido de `web/dist/` dentro de la carpeta `app-gestion` del servidor. Se incluye `web/public/.htaccess` en el build. Si sigue dando 403:
+- Comprobar que `AllowOverride All` está activo para esa ruta
+- Añadir en el VirtualHost: `<Directory /ruta/a/app-gestion> Require all granted </Directory>`
 
 La API debe estar corriendo (Node.js) y accesible. Puedes usar PM2, systemd o un reverse proxy.
 
