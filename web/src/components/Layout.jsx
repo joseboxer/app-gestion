@@ -26,6 +26,7 @@ export default function Layout({ children }) {
             <li><NavLink to="/presupuestos">Presupuestos</NavLink></li>
             <li><NavLink to="/partes">Partes de Trabajo</NavLink></li>
             <li><NavLink to="/facturas">Facturación</NavLink></li>
+            <li><NavLink to="/productos-catalogo">Productos Catálogo</NavLink></li>
             <li><NavLink to="/usuarios">Usuarios</NavLink></li>
           </ul>
         </nav>

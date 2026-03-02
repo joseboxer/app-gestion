@@ -17,6 +17,8 @@ import facturasRoutes from './routes/facturas.js';
 import materialesRoutes from './routes/materiales.js';
 import partidasRoutes from './routes/partidas.js';
 import fichajeRoutes from './routes/fichaje.js';
+import marcasRoutes from './routes/marcas.js';
+import productosCatalogoRoutes from './routes/productosCatalogo.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -48,6 +50,8 @@ app.use('/api/facturas', facturasRoutes);
 app.use('/api/materiales', materialesRoutes);
 app.use('/api/partidas', partidasRoutes);
 app.use('/api/fichaje', fichajeRoutes);
+app.use('/api/marcas', marcasRoutes);
+app.use('/api/productos-catalogo', productosCatalogoRoutes);
 
 // WebSocket: notificar a operarios cuando se les asigna un parte
 io.on('connection', (socket) => {

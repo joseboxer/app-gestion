@@ -52,6 +52,8 @@ model Empresa {
   obras       Obra[]
   partidas    Partida[]
   materiales  Material[]
+  marcas      Marca[]
+  productosCatalogo ProductoCatalogo[]
 }
 
 // --- OBRAS / PROYECTOS ---
@@ -227,6 +229,32 @@ model Material {
 
   empresaId   String   @map("empresa_id")
   empresa     Empresa  @relation(fields: [empresaId], references: [id])
+}
+
+// --- PRODUCTOS CATÁLOGO (visuales Excel/PDF) ---
+model Marca {
+  id        String   @id @default(cuid())
+  nombre    String
+  empresaId String   @map("empresa_id")
+  empresa   Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  productos ProductoCatalogo[]
+}
+
+model ProductoCatalogo {
+  id               String   @id @default(cuid())
+  baseSerial       String   @map("base_serial")   // Nº serie base = directorio padre del visual
+  visualExcelPath  String?  @map("visual_excel_path")
+  visualPdfPath    String?  @map("visual_pdf_path")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  marcaId   String @map("marca_id")
+  marca     Marca  @relation(fields: [marcaId], references: [id], onDelete: Cascade)
+
+  empresaId String @map("empresa_id")
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([marcaId, baseSerial])
 }
 
 // --- FACTURACIÓN ---

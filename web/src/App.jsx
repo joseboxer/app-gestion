@@ -8,6 +8,7 @@ import Presupuestos from './pages/Presupuestos';
 import Partes from './pages/Partes';
 import Facturas from './pages/Facturas';
 import Usuarios from './pages/Usuarios';
+import ProductosCatalogo from './pages/ProductosCatalogo';
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
@@ -32,6 +33,7 @@ export default function App() {
                 <Route path="/partes" element={<Partes />} />
                 <Route path="/facturas" element={<Facturas />} />
                 <Route path="/usuarios" element={<Usuarios />} />
+                <Route path="/productos-catalogo" element={<ProductosCatalogo />} />
               </Routes>
             </Layout>
           </ProtectedRoute>
